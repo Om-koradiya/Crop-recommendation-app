@@ -1,0 +1,245 @@
+PS D:\Project\final crop> python -u "d:\Project\final crop\training-optimised.py"
+MEMORY-OPTIMIZED CROP RECOMMENDATION SYSTEM
+============================================================
+🚀 Running in memory-efficient mode for better stability
+============================================================
+📊 STEP 1: Loading data...
+Loading and exploring data...
+Reading data in optimized mode...
+Dataset loaded successfully!
+Dataset shape: (345336, 8)
+Columns: ['state', 'district', 'crop', 'crop_year', 'season', 'area', 'production', 'yield']
+
+Data Overview (first 5 rows):
+                        state  district      crop  crop_year       season    area  production  yield
+0  Andaman and Nicobar Island  NICOBARS  Arecanut       2007  Kharif       2439.6      3415.0   1.40
+1  Andaman and Nicobar Island  NICOBARS  Arecanut       2007  Rabi         1626.4      2277.0   1.40
+2  Andaman and Nicobar Island  NICOBARS  Arecanut       2008  Autumn       4147.0      3060.0   0.74
+3  Andaman and Nicobar Island  NICOBARS  Arecanut       2008  Summer       4147.0      2660.0   0.64
+4  Andaman and Nicobar Island  NICOBARS  Arecanut       2009  Autumn       4153.0      3120.0   0.75
+
+Data Types:
+state          object
+district       object
+crop           object
+crop_year       int64
+season         object
+area          float64
+production    float64
+yield         float64
+dtype: object
+Dropped 9 rows with missing crop data
+
+Missing Values:
+production    4944
+dtype: int64
+
+Unique crops in dataset: 55
+Top 10 crops by frequency:
+crop
+Rice                 21611
+Maize                20513
+Moong(Green Gram)    15139
+Urad                 14581
+Sesamum              13049
+Groundnut            12586
+Wheat                11220
+Rapeseed &Mustard    11034
+Sugarcane            10942
+Arhar/Tur            10885
+
+🔧 STEP 2: Preprocessing and feature engineering...
+
+DATA PREPROCESSING & FEATURE ENGINEERING
+============================================================
+Processing data in memory-optimized mode...
+Dataset cleaned! Shape: (345327, 8)
+Creating enhanced features...
+    Created productivity_ratio feature (production/area)
+    Creating area categories...
+    Created area_category feature
+    Creating yield categories...
+    Created yield_category feature
+    Created season_type feature
+Filtering crops with sufficient training data...
+    Keeping 55 crops with at least 30 samples each
+    Final dataset shape: (345327, 12)
+
+Top crops in final dataset:
+crop
+Rice                 21611
+Maize                20513
+Moong(Green Gram)    15139
+Urad                 14581
+Sesamum              13049
+Groundnut            12586
+Wheat                11220
+Rapeseed &Mustard    11034
+Sugarcane            10942
+Arhar/Tur            10885
+
+📈 Creating data samples for plotting...
+
+🏷️ STEP 3: Encoding features...
+
+ENCODING CATEGORICAL FEATURES
+============================================================
+Encoding categorical features one by one...
+    Processing state...
+    Encoded state: 37 unique values
+    Processing district...
+    Encoded district: 707 unique values
+    Processing season...
+    Encoded season: 6 unique values
+    Processing area_category...
+    Encoded area_category: 4 unique values
+    Processing yield_category...
+    Encoded yield_category: 5 unique values
+    Processing season_type...
+    Encoded season_type: 6 unique values
+    Processing crop (target variable)...
+    Encoded crop (target): 55 classes
+
+Crop classes in your model:
+    0: Arecanut
+    1: Arhar/Tur
+    2: Bajra
+    3: Banana
+    4: Barley
+    5: Black pepper
+    6: Cardamom
+    7: Cashewnut
+    8: Castor seed
+    9: Coconut
+    ... and 45 more
+
+🎯 STEP 4: Preparing features and target...
+
+PREPARING FEATURES AND TARGET
+============================================================
+Extracting features and target...
+    Features shape: (345327, 7)
+    Target shape: (345327,)
+    Feature columns: ['state_encoded', 'district_encoded', 'season_encoded', 'season_type_encoded', 'area_category_encoded', 'crop_year', 'area']
+    Number of crop classes: 55
+
+🤖 STEP 5: Training and evaluating models...
+
+SPLITTING DATA
+============================================================
+    Training set: (276261, 7)
+    Test set: (69066, 7)
+
+SCALING FEATURES
+============================================================
+    Fitting scaler on training data...
+    Transforming test data...
+    Scaled 7 numerical features: ['state_encoded', 'district_encoded', 'season_encoded', 'season_type_encoded', 'area_category_encoded', 'crop_year', 'area']
+
+TRAINING CLASSIFICATION MODELS
+============================================================
+
+Training XGBoost Classifier...
+    Model parameters optimized for memory efficiency
+    Making predictions...
+    Training time: 53.16 seconds
+    Accuracy: 0.3605
+    F1-Score: 0.3587
+
+Training Random Forest Classifier...
+    Model parameters optimized for memory efficiency
+    Making predictions...
+    Training time: 10.03 seconds
+    Accuracy: 0.3184
+    F1-Score: 0.3068
+
+Training Extra Trees Classifier...
+    Model parameters optimized for memory efficiency
+    Making predictions...
+    Training time: 5.44 seconds
+    Accuracy: 0.2949
+    F1-Score: 0.2701
+
+Best Model: XGBoost Classifier
+    Best Accuracy: 0.3605
+    Best F1-Score: 0.3587
+
+📊 STEP 6: Creating visualizations...
+
+CREATING EXPLORATORY DATA ANALYSIS PLOTS
+============================================================
+Using data samples for plotting to optimize memory usage...
+Creating EDA overview plots...
+Saved: plots\eda_overview.png
+Creating correlation heatmap...
+Saved: plots\correlation_heatmap.png
+Creating state analysis plot...
+Saved: plots\state_analysis.png
+Creating feature engineering insights...
+Saved: plots\feature_engineering_insights.png
+Creating model performance plot...
+Saved: plots\model_performance.png
+All plots created successfully!
+
+✅ STEP 7: Cross-validation...
+
+CROSS-VALIDATION FOR XGBOOST CLASSIFIER
+============================================================
+    Performing 3-fold cross-validation (memory optimized)...
+    CV Accuracy: 0.0479 (+/- 0.0505)
+    CV F1-Score: 0.0423 (+/- 0.0310)
+
+🎯 STEP 8: Analyzing feature importance...
+
+FEATURE IMPORTANCE - XGBOOST CLASSIFIER
+============================================================
+              Feature  Importance
+       season_encoded    0.602271
+        state_encoded    0.142949
+area_category_encoded    0.106146
+                 area    0.068920
+            crop_year    0.043108
+     district_encoded    0.036605
+  season_type_encoded    0.000000
+
+💾 STEP 9: Saving model artifacts...
+
+SAVING MODEL ARTIFACTS
+============================================================
+    Saving model...
+    Model saved as 'crop_model.pkl'
+    Saving encoders...
+    Encoders saved as 'encoders.pkl'
+    Saving scaler...
+    Scaler saved as 'scaler.pkl'
+    Saving metadata...
+    Metadata saved as 'model_metadata.pkl'
+
+============================================================
+🎉 TRAINING COMPLETED SUCCESSFULLY!
+============================================================
+⏱️ Total training time: 452.31 seconds
+🏆 Best model: XGBOOST CLASSIFIER
+📈 Test accuracy: 0.3605
+📊 Test F1-score: 0.3587
+✅ CV accuracy: 0.0479
+📋 Number of crop classes: 55
+📜 Features used: 7
+
+📁 Files created:
+    crop_model.pkl
+    encoders.pkl
+    scaler.pkl
+    model_metadata.pkl
+
+📊 Plots created in 'plots' folder.
+
+💡 Memory optimizations applied:
+    - Smart garbage collection
+    - Data sampling for plots only
+    - Step-by-step processing
+    - Using 4/6 CPU cores efficiently
+    - Memory cleanup without speed loss
+
+🚀 Ready to build your Streamlit app!
+PS D:\Project\final crop>
