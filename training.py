@@ -1,9 +1,8 @@
-# Memory-optimized version of your advanced script
 import pandas as pd
 import numpy as np
 import joblib
 import time
-import gc  # Garbage collector for memory management
+import gc
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, f1_score
@@ -31,7 +30,6 @@ def create_plots(df_sample, df_clean_sample, results, best_model, feature_column
     # EDA Overview
     print("Creating EDA overview plots...")
     fig, axes = plt.subplots(2, 2, figsize=(20, 15))
-    # Create histplots with proper axis handling
     ax1 = sns.histplot(df_sample['crop_year'], bins=20, kde=True, ax=axes[0, 0])
     ax1.set_title('Distribution of Crop Year')
     
@@ -49,7 +47,7 @@ def create_plots(df_sample, df_clean_sample, results, best_model, feature_column
     plt.savefig(os.path.join(plot_dir, 'eda_overview.png'), dpi=100, bbox_inches='tight')
     plt.close()
     plt.clf()
-    gc.collect()  # Force garbage collection
+    gc.collect()
     print(f"Saved: {os.path.join(plot_dir, 'eda_overview.png')}")
 
     # Correlation Heatmap
@@ -109,7 +107,6 @@ def load_and_explore_data(file_path):
     """Load data and perform initial exploration with memory optimization"""
     print("Loading and exploring data...")
     
-    # Read with optimized dtypes to reduce memory usage
     print("Reading data in optimized mode...")
     dtype_dict = {
         'state': 'category',
@@ -155,7 +152,6 @@ def load_and_explore_data(file_path):
     print("Top 10 crops by frequency:")
     print(df['crop'].value_counts().head(10).to_string())
     
-    # Force garbage collection
     gc.collect()
     
     return df
@@ -167,7 +163,6 @@ def preprocess_and_engineer_features(df):
     
     print("Processing data in memory-optimized mode...")
     
-    # Work directly on the dataframe to save memory
     # Handle potential missing values in production and area
     df['production'].fillna(0, inplace=True)
     df['area'].fillna(df['area'].median(), inplace=True)
@@ -202,7 +197,6 @@ def preprocess_and_engineer_features(df):
     print("\nTop crops in final dataset:")
     print(df['crop'].value_counts().head(10).to_string())
     
-    # Force garbage collection
     gc.collect()
     
     return df
@@ -226,8 +220,6 @@ def encode_features(df):
         encoders[col] = le
         print(f"    Encoded {col}: {len(le.classes_)} unique values")
         
-        # Free up memory by deleting the original column after encoding
-        # (Keep original for plotting later by creating a sample)
         gc.collect()
         
     # Encode target variable 'crop'
@@ -243,7 +235,6 @@ def encode_features(df):
     if len(le_crop.classes_) > 10:
         print(f"    ... and {len(le_crop.classes_) - 10} more")
     
-    # Force garbage collection
     gc.collect()
         
     return df, encoders
@@ -253,7 +244,6 @@ def prepare_features_target(df_encoded):
     print("\nPREPARING FEATURES AND TARGET")
     print("=" * 60)
     
-    # The corrected feature list (same as your original)
     feature_columns = [
         'state_encoded', 
         'district_encoded', 
@@ -273,7 +263,6 @@ def prepare_features_target(df_encoded):
     print(f"    Feature columns: {feature_columns}")
     print(f"    Number of crop classes: {len(np.unique(y))}")
     
-    # Force garbage collection
     gc.collect()
     
     return X, y, feature_columns
@@ -286,7 +275,6 @@ def train_and_evaluate_models(X, y):
     print(f"    Training set: {X_train.shape}")
     print(f"    Test set: {X_test.shape}")
     
-    # Force garbage collection after splitting
     gc.collect()
 
     print("\nSCALING FEATURES")
@@ -308,12 +296,11 @@ def train_and_evaluate_models(X, y):
     print("\nTRAINING CLASSIFICATION MODELS")
     print("=" * 60)
     
-    # Optimized parameters - fast but memory-aware
     models = {
         'XGBoost Classifier': xgb.XGBClassifier(
             objective='multi:softmax', 
             random_state=42, 
-            n_jobs=5,  # Use 5 cores for better performance on your 6-core CPU
+            n_jobs=5,  # Use 5 cores
             use_label_encoder=False, 
             eval_metric='mlogloss',
             max_depth=6,
@@ -377,7 +364,6 @@ def train_and_evaluate_models(X, y):
         del y_pred
         gc.collect()
         
-        # No pause needed - just memory cleanup
 
     print(f"\nBest Model: {best_model_name}")
     print(f"    Best Accuracy: {results[best_model_name]['Accuracy']:.4f}")
@@ -397,7 +383,7 @@ def perform_cross_validation(model, X, y, model_name):
     print("=" * 60)
     print("    Performing 3-fold cross-validation (memory optimized)...")
     
-    # Use more CV folds but with smart parallelization
+    # CV folds with smart parallelization
     cv_accuracy = cross_val_score(model, X, y, cv=5, scoring='accuracy', n_jobs=3)  # 3 cores for CV
     gc.collect()
     
@@ -512,7 +498,6 @@ def main():
         }
         save_artifacts(best_model, encoders, scaler, metadata)
 
-        # Final Summary
         print("\n" + "=" * 60)
         print("🎉 TRAINING COMPLETED SUCCESSFULLY!")
         print("=" * 60)

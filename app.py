@@ -4,59 +4,62 @@ import joblib
 import os
 import numpy as np
 
-# --- PAGE CONFIGURATION ---
+# Page setup
 st.set_page_config(
     page_title="Crop Recommendation System",
     page_icon="🌾",
     layout="wide"
 )
 
-# --- LOAD SAVED ARTIFACTS ---
-# This section loads all the files created by your training script.
-# It uses a try-except block to handle errors gracefully if files are missing.
-try:
+# Load model, scaler, encoders, metadata, and data
+@st.cache_resource
+def load_artifacts():
     model = joblib.load('crop_model.pkl')
     scaler = joblib.load('scaler.pkl')
     encoders = joblib.load('encoders.pkl')
     metadata = joblib.load('model_metadata.pkl')
     df = pd.read_csv('APY.csv')
-    df.columns = df.columns.str.strip().str.lower() # Clean column names
+    df.columns = df.columns.str.strip().str.lower()
+    return model, scaler, encoders, metadata, df
+
+try:
+    model, scaler, encoders, metadata, df = load_artifacts()
 except FileNotFoundError:
     st.error("ERROR: Critical model files are missing! Please run the training script to generate them.")
     st.stop()
 
-# Extract feature columns from metadata
 feature_columns = metadata.get('feature_columns', [])
 
-# --- SIDEBAR NAVIGATION ---
+# Sidebar navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Project Information", "Data Exploration", "Crop Recommender"])
 st.sidebar.markdown("---")
 st.sidebar.info("This project recommends the best crop to grow based on environmental and agricultural data.")
 
-# =====================================================================================
-# --- PAGE 1: PROJECT INFORMATION ---
-# =====================================================================================
+# Project info page
 if page == "Project Information":
-    st.title("🌾 Advanced Crop Recommendation System")
+    st.title("🌾 Crop Recommendation System")
     st.markdown("---")
     
     st.header("Project Goal")
-    st.write("The primary objective of this project is to build a machine learning model that provides farmers with a reliable crop recommendation. By analyzing historical agricultural data from India, the system predicts the most suitable crop to cultivate based on specific environmental and geographical factors, aiming to increase yield and support agricultural planning.")
+    st.write("The primary objective of this project was to build a machine learning model that provides farmers with a reliable crop recommendation. By analyzing historical agricultural data from India, the system predicts the most suitable crop to cultivate based on specific environmental and geographical factors, aiming to increase yield and support agricultural planning.")
     
     st.header("How to Use This App")
-    st.write("This application is designed with a simple, multi-page interface:")
+    st.write("Use the navigation bar to jump between pages:")
     st.markdown("""
     - **Data Exploration**: This page provides a visual overview of the dataset used for training, including key statistics and distributions. It showcases the Exploratory Data Analysis (EDA) performed.
-    - **Crop Recommender**: This is the main tool. Users can input specific details like their state, district, season, and land area to receive an instant crop recommendation from our trained XGBoost model.
+    - **Crop Recommender**: This is the main tool. Users can input specific details like their state, district, season, and land area to receive instant crop recommendations from our trained XGBoost model.
     """)
 
     st.header("Dataset Information")
-    st.write("This project is built upon a comprehensive agricultural dataset sourced from the official **Indian Government portal (data.gov.in)**. It contains district-wise, season-wise crop production statistics, providing a rich foundation for our predictive model.")
+    st.write("This project is built upon a  agricultural dataset of India sourced from kaggle. It contains district-wise, season-wise crop production statistics, providing a rich foundation for our predictive model.")
+    
+    st.markdown("---")
+    st.header("About This Project")
+    st.write("Hi! I'm **Om Koradiya**, and I built this project.")
+    st.write("If you'd like to know more about it or see the code, check out the project's [GitHub repository](https://github.com/Om-koradiya/Crop-recommendation-app).")
 
-# =====================================================================================
-# --- PAGE 2: DATA EXPLORATION & PLOTS ---
-# =====================================================================================
+# Data exploration page
 elif page == "Data Exploration":
     st.title("📊 Data Exploration and Insights")
     st.markdown("---")
@@ -76,15 +79,12 @@ elif page == "Data Exploration":
     else:
         st.warning("The 'plots' directory was not found. Please run the training script to generate plots.")
 
-# =====================================================================================
-# --- PAGE 3: CROP RECOMMENDER (PREDICTION TOOL) ---
-# =====================================================================================
+# Crop recommender page
 elif page == "Crop Recommender":
     st.title("🌱 Crop Recommender Tool")
     st.markdown("---")
     st.header("Enter Your Farm's Details")
 
-    # Create columns for user input
     col1, col2 = st.columns(2)
 
     with col1:
@@ -101,43 +101,46 @@ elif page == "Crop Recommender":
         crop_year = st.number_input('Enter Crop Year', min_value=1997, max_value=2025, value=2024)
         area = st.number_input('Enter Area of Land (in Hectares)', min_value=0.01, value=1.0, step=0.1)
 
-    # Prediction button
     if st.button('Recommend Crop', use_container_width=True, type="primary"):
-        # Create a dictionary with user inputs
         user_input = {
             'state': selected_state, 'district': selected_district,
             'season': selected_season, 'crop_year': crop_year, 'area': area
         }
         input_df = pd.DataFrame([user_input])
 
-        # --- DATA PREPARATION PIPELINE ---
-        
-        # 1. Encode categorical text features
+        # Prepare input for model
         input_df['state_encoded'] = encoders['state'].transform(input_df['state'])
         input_df['district_encoded'] = encoders['district'].transform(input_df['district'])
         input_df['season_encoded'] = encoders['season'].transform(input_df['season'])
-        
-        # 2. Engineer the new features your model expects
-        # We define simple logic for single predictions
         input_df['season_type_encoded'] = encoders['season_type'].transform(input_df['season'].str.strip().str.lower())
-        
         area_bins = [0, 100, 1000, 10000, np.inf]
         area_labels = ['small', 'medium', 'large', 'very_large']
         input_df['area_category'] = pd.cut(input_df['area'], bins=area_bins, labels=area_labels, right=False)
         input_df['area_category_encoded'] = encoders['area_category'].transform(input_df['area_category'])
-        
-        # 3. Ensure all feature columns are present and in the correct order
         final_input_df = input_df[feature_columns]
-
-        # 4. Scale the features using the loaded scaler
         final_input_scaled = scaler.transform(final_input_df)
         
-        # --- PREDICTION ---
-        prediction_encoded = model.predict(final_input_scaled)
+        # Get top 3 crop predictions
+        probabilities = model.predict_proba(final_input_scaled)
+        top_3_indices = np.argsort(probabilities[0])[-3:][::-1]
+        top_3_probabilities = probabilities[0][top_3_indices]
+        top_3_crops = encoders['crop'].inverse_transform(top_3_indices)
         
-        # Decode the prediction back to the original crop name
-        predicted_crop = encoders['crop'].inverse_transform(prediction_encoded)
+        st.success("**Based on the provided data, here are your top 3 crop recommendations:**")
         
-        # --- DISPLAY RESULT ---
-        st.success(f"**Based on the provided data, the recommended crop is:**")
-        st.header(f"**{predicted_crop[0].title()}**")
+        res_col1, res_col2, res_col3 = st.columns(3)
+        
+        with res_col1:
+            st.subheader("🥇 1st Choice")
+            st.header(f"{top_3_crops[0].title()}")
+            st.metric(label="Confidence Score", value=f"{top_3_probabilities[0]*100:.2f}%")
+
+        with res_col2:
+            st.subheader("🥈 2nd Choice")
+            st.header(f"{top_3_crops[1].title()}")
+            st.metric(label="Confidence Score", value=f"{top_3_probabilities[1]*100:.2f}%")
+
+        with res_col3:
+            st.subheader("🥉 3rd Choice")
+            st.header(f"{top_3_crops[2].title()}")
+            st.metric(label="Confidence Score", value=f"{top_3_probabilities[2]*100:.2f}%")

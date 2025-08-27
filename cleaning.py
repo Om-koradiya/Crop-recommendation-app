@@ -6,7 +6,6 @@ def clean_agricultural_data():
     """
     Complete data cleaning for agricultural CSV file in the same folder
     """
-    # Check if the CSV file exists
     csv_file = "APY.csv"
     if not os.path.exists(csv_file):
         print(f"CSV file '{csv_file}' not found in the current directory!")
@@ -14,7 +13,6 @@ def clean_agricultural_data():
     
     print(f"Reading data from: {csv_file}")
     
-    # Read the CSV file
     try:
         df = pd.read_csv(csv_file)
     except Exception as e:
@@ -43,10 +41,6 @@ def clean_agricultural_data():
             if isinstance(sample_value, str) and len(str(sample_value).split()) >= 2:
                 print(f"Column '{col}' might contain combined data: '{sample_value}'")
     
-    # Handle missing values - based on your preview data structure
-    # Assuming columns: state, district, crop, crop_year, season, area, production, yield
-    
-    # Fix the production/yield relationship
     if 'production' in df.columns and 'yield' in df.columns and 'area' in df.columns:
         # If production is missing but area and yield exist, calculate production
         missing_production = df['production'].isnull() & df['yield'].notnull() & df['area'].notnull()
@@ -91,7 +85,6 @@ def clean_agricultural_data():
     final_count = len(df)
     print(f"\nRemoved {initial_count - final_count} duplicate rows")
     
-    # Data Validation
     print("\n=== DATA VALIDATION ===")
     
     # Check for negative values
@@ -103,11 +96,9 @@ def clean_agricultural_data():
     
     # Check for unrealistic values
     if 'yield' in df.columns:
-        # Assuming yield should typically be between 0.01 and 20 for most crops
         unrealistic_yield = ((df['yield'] > 20) | (df['yield'] < 0.01)).sum()
         print(f"Potential unrealistic yield values: {unrealistic_yield}")
     
-    # Basic Exploration
     print("\n=== DATA EXPLORATION ===")
     
     # Summary statistics
@@ -135,7 +126,6 @@ def clean_agricultural_data():
     
     return df
 
-# Run the cleaning process
 if __name__ == "__main__":
     cleaned_df = clean_agricultural_data()
     
